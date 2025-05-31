@@ -5,19 +5,19 @@ module jackpot_contract::jackpot_contract {
     use sui::clock::{Self, Clock};
     use sui::random::{Self, Random};
     use sui::event;
-    use sui::transfer;
-    use sui::object::{Self, UID};
-    use sui::tx_context::{Self, TxContext};
-    use std::vector;
-    use std::option;
+    use sui::table::{Self, Table};
+    // use sui::transfer;
+    // use sui::object::{Self, UID, ID};
+    // use sui::tx_context::{Self, TxContext};
+    // use std::vector;
+    // use std::option::{Self, Option};
 
     // Constants
-    const ROUND_DURATION_MS: u64 = 600000; // 10 minutes in milliseconds
-    const MINIMUM_BET: u64 = 100000000; // 0.1 SUI in MIST
+    const ROUND_DURATION_MS: u64 = 600000; // 10 minutes
+    const MINIMUM_BET: u64 = 100000000; // 0.1 SUI
     const WINNER_PERCENTAGE: u64 = 90;
     const AIRDROP_PERCENTAGE: u64 = 5;
-    const SEED_PERCENTAGE: u64 = 5;
-    const LAST_MINUTE_MS: u64 = 60000; // Last 60 seconds for 2X multiplier
+    const LAST_MINUTE_MS: u64 = 60000; // Last 60 seconds
     const LAST_MINUTE_MULTIPLIER: u8 = 2;
 
     // Error codes
@@ -27,13 +27,24 @@ module jackpot_contract::jackpot_contract {
     const ERR_NO_TICKETS: u64 = 4;
     const ERR_UNAUTHORIZED: u64 = 5;
     const ERR_ROUND_NOT_ACTIVE: u64 = 6;
+    const ERR_NOT_CURRENT_POOL: u64 = 7;
 
     // Round states
     const STATE_ACTIVE: u8 = 0;
     const STATE_DRAWING: u8 = 1;
     const STATE_COMPLETED: u8 = 2;
 
-    // Core data structures
+    // Core structures
+    public struct AdminCap has key {
+        id: UID,
+    }
+
+    public struct GameRegistry has key {
+        id: UID,
+        current_round: u64,
+        current_pool_id: Option<ID>,
+    }
+
     public struct LotteryPool has key {
         id: UID,
         round_number: u64,
@@ -55,8 +66,19 @@ module jackpot_contract::jackpot_contract {
         purchase_time: u64,
     }
 
-    public struct AdminCap has key {
+    public struct RoundHistory has key {
         id: UID,
+        rounds: Table<u64, RoundInfo>,
+    }
+
+    public struct RoundInfo has store, copy, drop {
+        pool_id: ID,
+        start_time: u64,
+        end_time: u64,
+        state: u8,
+        winner: Option<address>,
+        total_pool: u64,
+        total_tickets: u64,
     }
 
     // Events
@@ -89,12 +111,26 @@ module jackpot_contract::jackpot_contract {
         amount_per_recipient: u64,
     }
 
-    // Initialize the lottery system
+    // Initialize the contract
     fun init(ctx: &mut TxContext) {
         let admin_cap = AdminCap {
             id: object::new(ctx),
         };
+        
+        let registry = GameRegistry {
+            id: object::new(ctx),
+            current_round: 0,
+            current_pool_id: option::none(),
+        };
+        
+        let history = RoundHistory {
+            id: object::new(ctx),
+            rounds: table::new(ctx),
+        };
+        
         transfer::transfer(admin_cap, tx_context::sender(ctx));
+        transfer::share_object(registry);
+        transfer::share_object(history);
     }
 
     #[test_only]
@@ -102,12 +138,15 @@ module jackpot_contract::jackpot_contract {
         init(ctx)
     }
 
-    // Create the first lottery pool
+    // Create the first lottery pool (admin only)
     public fun create_initial_pool(
         _: &AdminCap,
+        registry: &mut GameRegistry,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        assert!(registry.current_round == 0, ERR_UNAUTHORIZED);
+        
         let current_time = clock::timestamp_ms(clock);
         let pool = LotteryPool {
             id: object::new(ctx),
@@ -122,6 +161,10 @@ module jackpot_contract::jackpot_contract {
             airdrop_recipients: vector::empty<address>(),
         };
 
+        // Update registry
+        registry.current_round = 1;
+        registry.current_pool_id = option::some(object::id(&pool));
+
         event::emit(NewRoundStarted {
             round_number: 1,
             start_time: current_time,
@@ -132,13 +175,17 @@ module jackpot_contract::jackpot_contract {
         transfer::share_object(pool);
     }
 
-    // Buy tickets function
+    // Buy tickets (anyone can call)
     public fun buy_tickets(
+        registry: &GameRegistry,
         pool: &mut LotteryPool,
         payment: Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        // Verify this is the current active pool
+        assert!(option::contains(&registry.current_pool_id, &object::id(pool)), ERR_NOT_CURRENT_POOL);
+        
         let current_time = clock::timestamp_ms(clock);
         assert!(pool.state == STATE_ACTIVE, ERR_ROUND_NOT_ACTIVE);
         assert!(current_time < pool.end_time, ERR_ROUND_ENDED);
@@ -146,7 +193,7 @@ module jackpot_contract::jackpot_contract {
         let payment_amount = coin::value(&payment);
         assert!(payment_amount >= MINIMUM_BET, ERR_INSUFFICIENT_PAYMENT);
 
-        // Check if we're in the last minute for 2X multiplier
+        // Calculate multiplier for last minute
         let time_remaining = pool.end_time - current_time;
         let multiplier = if (time_remaining <= LAST_MINUTE_MS) {
             LAST_MINUTE_MULTIPLIER
@@ -154,11 +201,11 @@ module jackpot_contract::jackpot_contract {
             1
         };
 
-        // Calculate ticket count (1 ticket per 0.1 SUI)
+        // Calculate tickets (1 ticket per 0.1 SUI, with multiplier)
         let base_ticket_count = payment_amount / MINIMUM_BET;
         let total_ticket_count = base_ticket_count * (multiplier as u64);
 
-        // Create ticket record
+        // Create ticket
         let ticket = Ticket {
             owner: tx_context::sender(ctx),
             amount: payment_amount,
@@ -181,14 +228,18 @@ module jackpot_contract::jackpot_contract {
         });
     }
 
-    // Draw winner and distribute prizes
+    // Draw winner (anyone can call after round ends)
     #[allow(lint(public_random))]
     public fun draw_winner(
+        registry: &GameRegistry,
         pool: &mut LotteryPool,
         random: &Random,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        // Verify this is the current pool
+        assert!(option::contains(&registry.current_pool_id, &object::id(pool)), ERR_NOT_CURRENT_POOL);
+        
         let current_time = clock::timestamp_ms(clock);
         assert!(current_time >= pool.end_time, ERR_ROUND_NOT_ENDED);
         assert!(pool.state == STATE_ACTIVE, ERR_ROUND_NOT_ACTIVE);
@@ -196,11 +247,11 @@ module jackpot_contract::jackpot_contract {
 
         pool.state = STATE_DRAWING;
 
-        // Generate random number for winner selection
+        // Generate random winning ticket
         let mut generator = random::new_generator(random, ctx);
         let winning_ticket = random::generate_u64_in_range(&mut generator, 1, pool.total_ticket_count + 1);
 
-        // Find the winner
+        // Find winner
         let mut current_count = 0;
         let mut winner_address = @0x0;
         let tickets_len = vector::length(&pool.tickets);
@@ -218,13 +269,12 @@ module jackpot_contract::jackpot_contract {
 
         pool.winner = option::some(winner_address);
 
-        // Calculate prize distribution
+        // Calculate distributions
         let total_balance = balance::value(&pool.total_pool);
         let winner_amount = (total_balance * WINNER_PERCENTAGE) / 100;
         let airdrop_total = (total_balance * AIRDROP_PERCENTAGE) / 100;
-        let _seed_amount = total_balance - winner_amount - airdrop_total;
 
-        // Select random participants for airdrop (up to 5 unique participants)
+        // Select unique participants for airdrop
         let mut unique_participants = get_unique_participants(&pool.tickets);
         let participants_len = vector::length(&unique_participants);
         let airdrop_count = if (participants_len < 5) { participants_len } else { 5 };
@@ -232,6 +282,7 @@ module jackpot_contract::jackpot_contract {
         if (airdrop_count > 0) {
             let airdrop_per_recipient = airdrop_total / (airdrop_count as u64);
             let mut j = 0;
+            
             while (j < airdrop_count && !vector::is_empty(&unique_participants)) {
                 let current_len = vector::length(&unique_participants);
                 if (current_len == 0) break;
@@ -252,7 +303,7 @@ module jackpot_contract::jackpot_contract {
                 );
                 transfer::public_transfer(airdrop_coin, recipient);
                 
-                // Remove recipient to avoid duplicates
+                // Remove to avoid duplicates
                 vector::remove(&mut unique_participants, recipient_index);
                 j = j + 1;
             };
@@ -282,20 +333,39 @@ module jackpot_contract::jackpot_contract {
         });
     }
 
-    // Start new round with seed from previous round
+    // Start new round (anyone can call after previous round completes)
     public fun start_new_round(
+        registry: &mut GameRegistry,
+        history: &mut RoundHistory,
         old_pool: &mut LotteryPool,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        // Verify this is the current completed pool
+        assert!(option::contains(&registry.current_pool_id, &object::id(old_pool)), ERR_NOT_CURRENT_POOL);
         assert!(old_pool.state == STATE_COMPLETED, ERR_ROUND_NOT_ACTIVE);
+        assert!(old_pool.round_number == registry.current_round, ERR_UNAUTHORIZED);
+        
+        // Archive the completed round
+        let round_info = RoundInfo {
+            pool_id: object::id(old_pool),
+            start_time: old_pool.start_time,
+            end_time: old_pool.end_time,
+            state: old_pool.state,
+            winner: old_pool.winner,
+            total_pool: balance::value(&old_pool.total_pool),
+            total_tickets: old_pool.total_ticket_count,
+        };
+        table::add(&mut history.rounds, old_pool.round_number, round_info);
         
         let current_time = clock::timestamp_ms(clock);
         let seed_balance = balance::value(&old_pool.total_pool);
+        let new_round = registry.current_round + 1;
         
+        // Create new pool with seed from previous round
         let new_pool = LotteryPool {
             id: object::new(ctx),
-            round_number: old_pool.round_number + 1,
+            round_number: new_round,
             start_time: current_time,
             end_time: current_time + ROUND_DURATION_MS,
             total_pool: balance::withdraw_all(&mut old_pool.total_pool),
@@ -306,8 +376,12 @@ module jackpot_contract::jackpot_contract {
             airdrop_recipients: vector::empty<address>(),
         };
 
+        // Update registry
+        registry.current_round = new_round;
+        registry.current_pool_id = option::some(object::id(&new_pool));
+
         event::emit(NewRoundStarted {
-            round_number: old_pool.round_number + 1,
+            round_number: new_round,
             start_time: current_time,
             end_time: current_time + ROUND_DURATION_MS,
             seed_amount: seed_balance,
@@ -326,19 +400,8 @@ module jackpot_contract::jackpot_contract {
             let ticket = vector::borrow(tickets, i);
             let participant = ticket.owner;
             
-            // Check if participant is already in unique list
-            let mut found = false;
-            let unique_len = vector::length(&unique);
-            let mut j = 0;
-            while (j < unique_len) {
-                if (*vector::borrow(&unique, j) == participant) {
-                    found = true;
-                    break
-                };
-                j = j + 1;
-            };
-            
-            if (!found) {
+            // Check if participant already exists
+            if (!vector::contains(&unique, &participant)) {
                 vector::push_back(&mut unique, participant);
             };
             
@@ -388,5 +451,21 @@ module jackpot_contract::jackpot_contract {
             let time_remaining = pool.end_time - current_time;
             time_remaining <= LAST_MINUTE_MS
         }
+    }
+
+    public fun get_current_round_info(registry: &GameRegistry): (u64, Option<ID>) {
+        (registry.current_round, registry.current_pool_id)
+    }
+
+    public fun get_round_history(history: &RoundHistory, round_number: u64): Option<RoundInfo> {
+        if (table::contains(&history.rounds, round_number)) {
+            option::some(*table::borrow(&history.rounds, round_number))
+        } else {
+            option::none()
+        }
+    }
+
+    public fun is_current_pool(registry: &GameRegistry, pool: &LotteryPool): bool {
+        option::contains(&registry.current_pool_id, &object::id(pool))
     }
 }
