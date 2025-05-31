@@ -1,9 +1,14 @@
 // Jackpot contract configuration
 export const JACKPOT_CONFIG = {
-  // This will be set after contract deployment
-  PACKAGE_ID:
-    "0x7985c9350947ca5c3f5949c93913c6c0a0f4f67a708c8a549893772fcb228ce6",
+  // Contract deployment info loaded from environment variables
+  PACKAGE_ID: import.meta.env.VITE_PACKAGE_ID || "",
   MODULE_NAME: "jackpot_contract",
+  
+  // Object IDs from deployment
+  ADMIN_CAP: import.meta.env.VITE_ADMIN_CAP || "",
+  GAME_REGISTRY: import.meta.env.VITE_GAME_REGISTRY || "",
+  ROUND_HISTORY: import.meta.env.VITE_ROUND_HISTORY || "",
+  CURRENT_POOL: import.meta.env.VITE_CURRENT_POOL || "", // Current active pool
 
   // Contract constants (matching the Move contract)
   ROUND_DURATION_MS: 600000, // 10 minutes

@@ -1,12 +1,47 @@
+import { useEffect, useState } from 'react';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { WalletConnection } from './components/WalletConnection';
 import { JackpotGame } from './components/JackpotGame';
 import { ContractTest } from './components/ContractTest';
 import { ActivityFeed } from './components/ActivityFeed';
 import { AdminPanel } from './components/AdminPanel';
+import { validateConfig, isConfigured } from './utils/config-validation';
 
 function App() {
   const currentAccount = useCurrentAccount();
+  const [configValid, setConfigValid] = useState(false);
+
+  useEffect(() => {
+    // Validate configuration on startup
+    const isValid = validateConfig();
+    setConfigValid(isValid);
+  }, []);
+
+  // Show configuration error if not properly configured
+  if (!configValid) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="max-w-2xl w-full p-8">
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6">
+            <h2 className="text-xl font-bold text-red-400 mb-4">⚠️ Configuration Error</h2>
+            <p className="text-gray-300 mb-4">
+              The jackpot contract configuration is missing. Please follow these steps:
+            </p>
+            <ol className="list-decimal list-inside space-y-2 text-gray-300">
+              <li>Navigate to the contract directory: <code className="bg-gray-800 px-2 py-1 rounded">cd jackpot_contract</code></li>
+              <li>Run the deployment script: <code className="bg-gray-800 px-2 py-1 rounded">./deploy-and-configure.sh</code></li>
+              <li>The script will automatically create a .env file with the contract addresses</li>
+              <li>Restart the frontend development server</li>
+            </ol>
+            <div className="mt-6 p-4 bg-gray-800 rounded">
+              <p className="text-sm text-gray-400 mb-2">Check the browser console for specific missing values.</p>
+              <p className="text-sm text-gray-400">If you have already deployed the contract, create a <code>.env</code> file in the frontend directory based on <code>.env.example</code></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -4,9 +4,8 @@ import { JackpotApi } from "../apis/jackpot.api";
 import { useJackpotStore } from "../stores/jackpot.store";
 import { JACKPOT_CONFIG } from "../../config/jackpot";
 
-// These will be set after contract deployment
-const REGISTRY_ID =
-  "0xf08234a5462b5b9e398de0e213a09f58d7b4e5e6ae7840258be0ebf057666f3e";
+// Use configuration from environment
+const REGISTRY_ID = JACKPOT_CONFIG.GAME_REGISTRY;
 const CLOCK_ID = "0x6"; // Sui Clock object ID
 
 export const useJackpot = () => {

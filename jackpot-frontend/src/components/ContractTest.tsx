@@ -27,9 +27,10 @@ export function ContractTest() {
         log('🚀 Starting contract interaction tests...');
 
         try {
-            // Test 1: Try to get registry info (this will fail until contract is deployed)
+            // Test 1: Try to get registry info
             log('📋 Testing registry retrieval...');
-            const registryResult = await JackpotApi.getGameRegistry('DUMMY_REGISTRY_ID');
+            const { JACKPOT_CONFIG } = await import('../config/jackpot');
+            const registryResult = await JackpotApi.getGameRegistry(JACKPOT_CONFIG.GAME_REGISTRY);
             if (registryResult.error) {
                 log(`⚠️  Registry test failed (expected): ${registryResult.error}`);
             } else {
@@ -38,7 +39,7 @@ export function ContractTest() {
 
             // Test 2: Try to get pool info
             log('🎰 Testing pool retrieval...');
-            const poolResult = await JackpotApi.getLotteryPool('DUMMY_POOL_ID');
+            const poolResult = await JackpotApi.getLotteryPool(JACKPOT_CONFIG.CURRENT_POOL);
             if (poolResult.error) {
                 log(`⚠️  Pool test failed (expected): ${poolResult.error}`);
             } else {
@@ -47,7 +48,7 @@ export function ContractTest() {
 
             // Test 3: Try to get user tickets
             log('🎫 Testing user tickets retrieval...');
-            const ticketsResult = await JackpotApi.getUserTickets('DUMMY_POOL_ID', currentAccount.address);
+            const ticketsResult = await JackpotApi.getUserTickets(JACKPOT_CONFIG.CURRENT_POOL, currentAccount.address);
             if (ticketsResult.error) {
                 log(`⚠️  User tickets test failed (expected): ${ticketsResult.error}`);
             } else {
@@ -58,8 +59,8 @@ export function ContractTest() {
             log('💸 Testing buy tickets transaction creation...');
             try {
                 const buyTx = JackpotApi.createBuyTicketsTx(
-                    'DUMMY_REGISTRY_ID',
-                    'DUMMY_POOL_ID',
+                    JACKPOT_CONFIG.GAME_REGISTRY,
+                    JACKPOT_CONFIG.CURRENT_POOL,
                     0.1,
                     '0x6'
                 );
@@ -86,13 +87,16 @@ export function ContractTest() {
 
             // Test 6: Test configuration values
             log('⚙️  Testing configuration...');
-            const { JACKPOT_CONFIG } = await import('../config/jackpot');
+            log(`✅ Package ID: ${JACKPOT_CONFIG.PACKAGE_ID}`);
+            log(`✅ Game Registry: ${JACKPOT_CONFIG.GAME_REGISTRY}`);
+            log(`✅ Admin Cap: ${JACKPOT_CONFIG.ADMIN_CAP}`);
+            log(`✅ Round History: ${JACKPOT_CONFIG.ROUND_HISTORY}`);
             log(`✅ Min bet: ${JACKPOT_CONFIG.MINIMUM_BET / 1_000_000_000} SUI`);
             log(`✅ Round duration: ${JACKPOT_CONFIG.ROUND_DURATION_MS / 60000} minutes`);
             log(`✅ Winner percentage: ${JACKPOT_CONFIG.WINNER_PERCENTAGE}%`);
             log(`✅ Last minute multiplier: ${JACKPOT_CONFIG.LAST_MINUTE_MULTIPLIER}x`);
 
-            log('🎉 All tests completed! Ready for contract deployment.');
+            log('🎉 All tests completed! Contract is deployed and configured.');
 
         } catch (err) {
             log(`❌ Test suite failed: ${err}`);

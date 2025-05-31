@@ -4,8 +4,8 @@ import { JackpotApi } from '../core/apis/jackpot.api';
 import { JACKPOT_CONFIG } from '../config/jackpot';
 import { useState } from 'react';
 
-// These will need to be set after contract deployment
-const REGISTRY_ID = 'REGISTRY_OBJECT_ID_HERE';
+// Use configuration from environment
+const REGISTRY_ID = JACKPOT_CONFIG.GAME_REGISTRY;
 const CLOCK_ID = '0x6'; // Sui Clock object ID
 
 export function JackpotGame() {
@@ -83,7 +83,14 @@ export function JackpotGame() {
         return (
             <div className="bg-surface rounded-lg p-6 text-center">
                 <h3 className="text-lg font-bold text-white mb-2">No Active Round</h3>
-                <p className="text-gray-300">Waiting for the next lottery round to begin...</p>
+                {!JACKPOT_CONFIG.CURRENT_POOL ? (
+                    <div>
+                        <p className="text-gray-300 mb-4">No lottery pool has been created yet.</p>
+                        <p className="text-sm text-gray-400">An admin needs to create the initial pool using the Admin Panel.</p>
+                    </div>
+                ) : (
+                    <p className="text-gray-300">Waiting for the next lottery round to begin...</p>
+                )}
             </div>
         );
     }
