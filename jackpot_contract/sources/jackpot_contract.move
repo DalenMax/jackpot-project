@@ -14,6 +14,7 @@ module jackpot_contract::jackpot_contract {
 
     // Constants
     const ROUND_DURATION_MS: u64 = 600000; // 10 minutes
+    //const ROUND_DURATION_MS: u64 = 60000; // 1 minute for testing
     const MINIMUM_BET: u64 = 100000000; // 0.1 SUI
     const WINNER_PERCENTAGE: u64 = 90;
     const AIRDROP_PERCENTAGE: u64 = 5;
@@ -24,7 +25,6 @@ module jackpot_contract::jackpot_contract {
     const ERR_INSUFFICIENT_PAYMENT: u64 = 1;
     const ERR_ROUND_ENDED: u64 = 2;
     const ERR_ROUND_NOT_ENDED: u64 = 3;
-    const ERR_NO_TICKETS: u64 = 4;
     const ERR_UNAUTHORIZED: u64 = 5;
     const ERR_ROUND_NOT_ACTIVE: u64 = 6;
     const ERR_NOT_CURRENT_POOL: u64 = 7;
@@ -243,7 +243,22 @@ module jackpot_contract::jackpot_contract {
         let current_time = clock::timestamp_ms(clock);
         assert!(current_time >= pool.end_time, ERR_ROUND_NOT_ENDED);
         assert!(pool.state == STATE_ACTIVE, ERR_ROUND_NOT_ACTIVE);
-        assert!(pool.total_ticket_count > 0, ERR_NO_TICKETS);
+
+        // // Handle empty rounds (no tickets sold)
+        if (pool.total_ticket_count == 0) {
+            pool.state = STATE_COMPLETED;
+            pool.winner = option::none();
+            
+            event::emit(RoundEnded {
+                round_number: pool.round_number,
+                winner: @0x0,
+                prize_amount: 0,
+                total_pool: balance::value(&pool.total_pool),
+                total_tickets: 0,
+            });
+            
+            return  // Exit early - no distributions needed
+        };
 
         pool.state = STATE_DRAWING;
 
