@@ -8,7 +8,7 @@ export const JACKPOT_CONFIG = {
   ADMIN_CAP: process.env.NEXT_PUBLIC_ADMIN_CAP || "",
   GAME_REGISTRY: process.env.NEXT_PUBLIC_GAME_REGISTRY || "",
   ROUND_HISTORY: process.env.NEXT_PUBLIC_ROUND_HISTORY || "",
-  CURRENT_POOL: process.env.NEXT_PUBLIC_CURRENT_POOL || "", // Current active pool
+  // Note: CURRENT_POOL is not used - we get it dynamically from the registry
 
   // Contract constants (matching the Move contract)
   ROUND_DURATION_MS: 600000, // 10 minutes
@@ -35,5 +35,6 @@ export const JACKPOT_FUNCTIONS = {
   GET_WINNER: "get_winner",
   IS_LAST_MINUTE: "is_last_minute",
   GET_CURRENT_ROUND_INFO: "get_current_round_info",
+  GET_CURRENT_POOL_INFO: "get_current_pool_info",
   IS_CURRENT_POOL: "is_current_pool",
 } as const;

@@ -6,7 +6,7 @@ import confetti from "canvas-confetti";
 import { Zap, Trophy, TrendingUp, Users, Clock, Gift, Star, Sparkles, DollarSign, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { SuiJackpotLogo } from './sui-jackpot-logo';
-import { useCurrentAccount, useSuiClientQuery, useDisconnectWallet, ConnectButton, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSuiClientQuery, useDisconnectWallet, ConnectButton, useSignAndExecuteTransaction, useSuiClient } from '@mysten/dapp-kit';
 import { useJackpot } from '../core/hooks/use-jackpot.hook';
 import { JACKPOT_CONFIG } from '../config/jackpot';
 
@@ -19,6 +19,7 @@ const playSound = (type: "purchase" | "countdown" | "win" | "bonus") => {
 export function JackpotGame() {
   const {
     currentPool,
+    registry,
     userStats,
     isLoading,
     error,
@@ -63,8 +64,9 @@ export function JackpotGame() {
   const [purchaseAmount, setPurchaseAmount] = useState("");
   const [isPurchasing, setIsPurchasing] = useState(false);
   
-  // Transaction hook
+  // Transaction hook and SUI client
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+  const suiClient = useSuiClient();
 
   // Buy tickets function
   const handleBuyTickets = async (amount: number) => {
@@ -110,70 +112,122 @@ export function JackpotGame() {
     setIsPurchasing(true);
 
     try {
-      // Build the transaction
-      const transaction = {
-        kind: 'moveCall' as const,
-        target: `${JACKPOT_CONFIG.PACKAGE_ID}::jackpot::buy_tickets`,
-        arguments: [
-          currentPool.id,
-          {
-            kind: 'nestedResult' as const,
-            index: 0,
-            resultIndex: 0
-          }
-        ],
-        typeArguments: [],
-      };
+      // Import the JackpotApi to use the proper transaction builder
+      const { JackpotApi } = await import('../core/apis/jackpot.api');
+      
+      // Use the current pool ID from the registry we already have
+      if (!registry?.current_pool_id) {
+        setAchievements(prev => [...prev.slice(-4), {
+          id: Date.now(),
+          text: "❌ Could not find active pool. Please try again.",
+          type: "error"
+        }]);
+        setIsPurchasing(false);
+        return;
+      }
 
-      // Create the coin split transaction first
-      const coinSplitTx = {
-        kind: 'splitCoins' as const,
-        coin: 'gas',
-        amounts: [amountInMist.toString()]
-      };
-
-      signAndExecute({
-        transaction: {
-          kind: 'programmableTransaction' as const,
-          inputs: [],
-          transactions: [coinSplitTx, transaction]
-        }
-      }, {
-        onSuccess: (result) => {
-          console.log('Transaction successful:', result);
-          playSound("purchase");
-          
-          const ticketsEstimate = Math.floor(amount / 0.1);
-          const multiplier = isLastMinute ? 2 : 1;
-          const finalTickets = ticketsEstimate * multiplier;
-
-          setAchievements(prev => [...prev.slice(-4), {
-            id: Date.now(),
-            text: `✅ Successfully bought ~${finalTickets} tickets for ${amount} SUI!`,
-            type: "success"
-          }]);
-
-          if (finalTickets >= 100) {
-            setAchievements(prev => [...prev.slice(-4), {
-              id: Date.now() + 1,
-              text: `🎯 WHALE ALERT! You bought ${finalTickets} tickets!`,
-              type: "whale"
-            }]);
-          }
-
-          setPurchaseAmount("");
-          setIsPurchasing(false);
-        },
-        onError: (error) => {
-          console.error('Transaction failed:', error);
-          setAchievements(prev => [...prev.slice(-4), {
-            id: Date.now(),
-            text: "❌ Transaction failed. Please try again.",
-            type: "error"
-          }]);
-          setIsPurchasing(false);
-        }
+      const currentPoolId = registry.current_pool_id;
+      console.log('🎯 Using current pool ID from registry:', currentPoolId);
+      console.log('📋 Current pool object ID:', currentPool?.id);
+      console.log('📋 Pool ID validation:', {
+        registryPoolId: currentPoolId,
+        currentPoolObjectId: currentPool?.id,
+        idsMatch: currentPoolId === currentPool?.id,
+        bothExist: !!(currentPoolId && currentPool?.id)
       });
+      
+      console.log('📋 Transaction parameters:', {
+        gameRegistry: JACKPOT_CONFIG.GAME_REGISTRY,
+        poolId: currentPoolId,
+        amount,
+        clockId: '0x6'
+      });
+      
+      // Validate all required parameters
+      if (!currentPoolId || !JACKPOT_CONFIG.GAME_REGISTRY) {
+        setAchievements(prev => [...prev.slice(-4), {
+          id: Date.now(),
+          text: "❌ Missing required configuration. Please try again.",
+          type: "error"
+        }]);
+        setIsPurchasing(false);
+        return;
+      }
+
+      // Validate that the current pool object matches the registry's current pool
+      if (currentPool?.id !== currentPoolId) {
+        setAchievements(prev => [...prev.slice(-4), {
+          id: Date.now(),
+          text: "❌ Pool data out of sync. Refreshing...",
+          type: "error"
+        }]);
+        setIsPurchasing(false);
+        console.log('🔄 Pool ID mismatch, triggering refresh...');
+        // Trigger a refresh to get the correct pool
+        setTimeout(() => window.location.reload(), 1000);
+        return;
+      }
+      
+      // Build the transaction using the proper API with the registry's current pool ID
+      const transaction = JackpotApi.createBuyTicketsTx(
+        JACKPOT_CONFIG.GAME_REGISTRY,
+        currentPoolId,
+        amount, // amount in SUI
+        '0x6' // Clock object ID on Sui
+      );
+
+      console.log('📝 Transaction object created:', transaction);
+
+      // Try building the transaction again with different settings
+      console.log('🔄 Attempting transaction execution...');
+      
+      signAndExecute(
+        {
+          transaction,
+        }, 
+        {
+          onSuccess: (result) => {
+            console.log('✅ Transaction successful:', result);
+            playSound("purchase");
+            
+            const ticketsEstimate = Math.floor(amount / 0.1);
+            const multiplier = isLastMinute ? 2 : 1;
+            const finalTickets = ticketsEstimate * multiplier;
+
+            setAchievements(prev => [...prev.slice(-4), {
+              id: Date.now(),
+              text: `✅ Successfully bought ~${finalTickets} tickets for ${amount} SUI!`,
+              type: "success"
+            }]);
+
+            if (finalTickets >= 100) {
+              setAchievements(prev => [...prev.slice(-4), {
+                id: Date.now() + 1,
+                text: `🎯 WHALE ALERT! You bought ${finalTickets} tickets!`,
+                type: "whale"
+              }]);
+            }
+
+            setPurchaseAmount("");
+            setIsPurchasing(false);
+          },
+          onError: (error) => {
+            console.error('❌ Transaction failed:', error);
+            console.error('❌ Error details:', {
+              message: error.message,
+              stack: error.stack,
+              cause: error.cause
+            });
+            
+            setAchievements(prev => [...prev.slice(-4), {
+              id: Date.now(),
+              text: `❌ Transaction failed: ${error.message || 'Unknown error'}`,
+              type: "error"
+            }]);
+            setIsPurchasing(false);
+          }
+        }
+      );
 
     } catch (error) {
       console.error('Error building transaction:', error);

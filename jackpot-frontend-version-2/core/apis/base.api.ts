@@ -2,8 +2,14 @@ import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 
 export class BaseApi {
     protected static suiClient = new SuiClient({
-        url: getFullnodeUrl('devnet'), // Using devnet to match deployed contract
+        url: getFullnodeUrl('testnet'), // Using testnet to match deployed contract
     });
+
+    // Get network from environment or default to testnet
+    protected static getNetwork(): 'devnet' | 'testnet' | 'mainnet' {
+        const network = process.env.NEXT_PUBLIC_SUI_NETWORK as 'devnet' | 'testnet' | 'mainnet';
+        return network || 'testnet';
+    }
 
     protected static formatSuiAmount(amount: string | number): number {
         // Convert from MIST to SUI (divide by 10^9)

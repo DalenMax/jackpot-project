@@ -27,8 +27,7 @@ export const useEvents = () => {
   });
 
   const suiClient = new SuiClient({
-    url: getFullnodeUrl("testnet"),
-    //url: getFullnodeUrl("devnet"),
+    url: getFullnodeUrl("testnet"), // Using testnet to match contract deployment
   });
 
   const startListening = async () => {

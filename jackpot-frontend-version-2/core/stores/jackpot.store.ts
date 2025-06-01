@@ -105,15 +105,15 @@ export const useJackpotStore = create<JackpotStore>((set, get) => ({
             const { setLoading, setError, setCurrentPool, registry } = get();
             setLoading(true);
             
-            // If no poolId provided, use the one from registry
-            const targetPoolId = poolId || registry?.current_pool_id;
+            // Always use the pool ID from registry as the source of truth
+            const targetPoolId = registry?.current_pool_id;
             
             if (!targetPoolId) {
-                console.warn('⚠️ No pool ID available - registry may not be loaded yet');
+                console.warn('⚠️ No pool ID available in registry - may not be loaded yet');
                 return;
             }
             
-            console.log('🎱 Fetching pool from:', targetPoolId);
+            console.log('🎱 Fetching current pool from registry:', targetPoolId);
             const { data, error } = await JackpotApi.getLotteryPool(targetPoolId);
             console.log('🎯 Pool response:', { data, error });
             
@@ -121,8 +121,14 @@ export const useJackpotStore = create<JackpotStore>((set, get) => ({
                 console.error('❌ Pool error:', error);
                 setError(error);
             } else if (data) {
-                console.log('✅ Pool data loaded:', data);
-                setCurrentPool(data);
+                console.log('✅ Current pool data loaded:', data);
+                // Validate that the pool ID matches what we expected
+                if (data.id === targetPoolId) {
+                    setCurrentPool(data);
+                } else {
+                    console.error('❌ Pool ID mismatch!', { expected: targetPoolId, actual: data.id });
+                    setError(`Pool ID mismatch: expected ${targetPoolId}, got ${data.id}`);
+                }
             }
         } catch (err) {
             console.error('💥 Pool fetch failed:', err);
@@ -136,7 +142,13 @@ export const useJackpotStore = create<JackpotStore>((set, get) => ({
 
     fetchUserStats: async (poolId: string, userAddress: string) => {
         try {
-            const { currentPool, setUserStats } = get();
+            const { currentPool, registry, setUserStats } = get();
+            
+            // Only fetch user stats for the current active pool from registry
+            if (poolId !== registry?.current_pool_id) {
+                console.warn('⚠️ Skipping user stats for non-current pool:', poolId);
+                return;
+            }
             
             const { data: tickets, error } = await JackpotApi.getUserTickets(poolId, userAddress);
             if (error) {
@@ -161,6 +173,14 @@ export const useJackpotStore = create<JackpotStore>((set, get) => ({
 
     checkLastMinute: async (poolId: string): Promise<boolean> => {
         try {
+            const { registry } = get();
+            
+            // Only check last minute for the current active pool from registry
+            if (poolId !== registry?.current_pool_id) {
+                console.warn('⚠️ Skipping last minute check for non-current pool:', poolId);
+                return false;
+            }
+            
             const { data, error } = await JackpotApi.isLastMinute(poolId, CLOCK_ID);
             if (error) {
                 console.error("Error checking last minute:", error);

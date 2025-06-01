@@ -33,7 +33,7 @@ export function validateConfig() {
   console.log('✅ Configuration validated successfully');
   console.log('📦 Package ID:', JACKPOT_CONFIG.PACKAGE_ID);
   console.log('🎮 Game Registry:', JACKPOT_CONFIG.GAME_REGISTRY);
-  console.log('🎰 Current Pool:', JACKPOT_CONFIG.CURRENT_POOL || 'Not set (create initial pool first)');
+  console.log('🎰 Pool Management: Dynamic (from registry)');
   
   return true;
 }

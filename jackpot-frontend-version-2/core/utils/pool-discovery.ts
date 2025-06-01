@@ -63,8 +63,8 @@ export class PoolDiscovery {
     
     console.log('🔍 Discovering latest pool for registry:', targetRegistryId);
     
-    // Try networks in order of likelihood
-    const networks: ('devnet' | 'testnet' | 'mainnet')[] = ['devnet', 'testnet', 'mainnet'];
+    // Try testnet first since that's where our contract is deployed
+    const networks: ('devnet' | 'testnet' | 'mainnet')[] = ['testnet', 'devnet', 'mainnet'];
     
     for (const network of networks) {
       console.log(`🌐 Checking ${network}...`);

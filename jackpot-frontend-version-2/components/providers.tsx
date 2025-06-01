@@ -24,7 +24,7 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <SuiClientProvider networks={networkConfig} defaultNetwork="devnet">
+      <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
         <WalletProvider 
           autoConnect
           storage={typeof window !== 'undefined' ? localStorage : undefined}
