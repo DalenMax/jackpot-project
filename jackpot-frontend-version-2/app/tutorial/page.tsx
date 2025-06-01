@@ -259,178 +259,213 @@ export default function TutorialPage() {
             See exactly how you can turn small investments into life-changing prizes
           </motion.p>
 
-          {/* Horizontal Timeline Game Flow */}
-          <div className="relative max-w-7xl mx-auto">
-            {/* Timeline Line - Desktop */}
-            <div className="hidden lg:block absolute top-24 left-0 right-0 h-1 bg-gradient-to-r from-[#00D4FF] via-[#FFE500] via-[#FF61E6] to-[#A855F7]">
-              {/* Animated pulse effect on timeline */}
-              <motion.div 
-                className="absolute inset-0 h-full bg-gradient-to-r from-[#00D4FF] via-[#FFE500] via-[#FF61E6] to-[#A855F7]"
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ repeat: Infinity, duration: 3 }}
-              />
-            </div>
+          {/* Horizontal Flow with Clear Steps */}
+          <div className="relative max-w-6xl mx-auto">
+            {/* Connection Line */}
+            <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-[#00D4FF]/20 via-[#FFE500]/20 via-[#FF61E6]/20 to-[#A855F7]/20 hidden lg:block transform -translate-y-1/2" />
             
-            {/* Timeline Items */}
-            <div className="grid lg:grid-cols-4 gap-8 relative">
+            {/* Steps Container */}
+            <div className="grid md:grid-cols-4 gap-6 lg:gap-4 relative">
               {/* Step 1: Buy Tickets */}
               <motion.div
-                className="relative"
-                initial={{ opacity: 0, y: 50 }}
+                className="relative flex flex-col items-center"
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
               >
-                {/* Timeline Node */}
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-20 hidden lg:block">
-                  <motion.div 
-                    className="w-12 h-12 bg-gradient-to-br from-[#00D4FF] to-[#0088CC] rounded-full flex items-center justify-center font-black text-white border-4 border-white shadow-lg"
-                    whileInView={{ scale: [0, 1.2, 1] }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    1
-                  </motion.div>
-                </div>
+                {/* Step Number Circle */}
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-br from-[#00D4FF] to-[#0088CC] rounded-full flex items-center justify-center font-black text-2xl text-white shadow-xl mb-6 relative z-10"
+                  whileInView={{ scale: [0, 1.1, 1] }}
+                  viewport={{ once: true }}
+                >
+                  1
+                </motion.div>
                 
-                <div className="glass-card p-6 mt-12 text-center hover:scale-105 transition-transform">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0088CC] flex items-center justify-center">
-                    <Coins className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Buy Tickets</h3>
-                  <p className="text-gray-300 text-sm mb-4">Start with just 0.1 SUI per ticket</p>
-                  <div className="bg-[#00D4FF]/20 rounded-lg p-3">
-                    <div className="text-xs text-gray-300">Example</div>
-                    <div className="text-lg font-bold text-[#00D4FF]">10 SUI = 100 tickets</div>
+                {/* Content Card */}
+                <div className="glass-card p-6 text-center w-full hover:transform hover:scale-105 transition-all duration-300">
+                  <Coins className="w-12 h-12 mx-auto mb-4 text-[#00D4FF]" />
+                  <h3 className="text-2xl font-bold mb-3">Buy Tickets</h3>
+                  <p className="text-gray-300 mb-4">Start with just 0.1 SUI per ticket. Buy as many as you want!</p>
+                  <div className="bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded-lg p-4">
+                    <div className="text-sm text-gray-400 mb-1">Example Investment</div>
+                    <div className="text-xl font-bold text-[#00D4FF]">10 SUI = 100 tickets</div>
                   </div>
                 </div>
+
+                {/* Arrow to next step (desktop only) */}
+                <motion.div 
+                  className="absolute -right-8 top-10 hidden lg:block"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <ArrowRight className="w-8 h-8 text-[#00D4FF]" />
+                </motion.div>
               </motion.div>
 
               {/* Step 2: Pool Grows */}
               <motion.div
-                className="relative"
-                initial={{ opacity: 0, y: 50 }}
+                className="relative flex flex-col items-center"
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
               >
-                {/* Timeline Node */}
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-20 hidden lg:block">
-                  <motion.div 
-                    className="w-12 h-12 bg-gradient-to-br from-[#FFE500] to-[#FFA500] rounded-full flex items-center justify-center font-black text-white border-4 border-white shadow-lg"
-                    whileInView={{ scale: [0, 1.2, 1] }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    2
-                  </motion.div>
-                </div>
+                {/* Step Number Circle */}
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-br from-[#FFE500] to-[#FFA500] rounded-full flex items-center justify-center font-black text-2xl text-white shadow-xl mb-6 relative z-10"
+                  whileInView={{ scale: [0, 1.1, 1] }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                >
+                  2
+                </motion.div>
                 
-                <div className="glass-card p-6 mt-12 text-center hover:scale-105 transition-transform">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#FFE500] to-[#FFA500] flex items-center justify-center">
-                    <TrendingUp className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Pool Grows</h3>
-                  <p className="text-gray-300 text-sm mb-4">10-minute rounds with growing excitement</p>
-                  <div className="bg-[#FFE500]/20 rounded-lg p-3">
-                    <div className="text-xs text-gray-300">Example Pool</div>
-                    <div className="text-lg font-bold text-[#FFE500]">18,492 SUI</div>
-                    <div className="text-xs text-gray-300">& growing!</div>
+                {/* Content Card */}
+                <div className="glass-card p-6 text-center w-full hover:transform hover:scale-105 transition-all duration-300">
+                  <TrendingUp className="w-12 h-12 mx-auto mb-4 text-[#FFE500]" />
+                  <h3 className="text-2xl font-bold mb-3">Pool Grows</h3>
+                  <p className="text-gray-300 mb-4">Watch excitement build for 10 minutes as prize grows!</p>
+                  <div className="bg-[#FFE500]/10 border border-[#FFE500]/30 rounded-lg p-4">
+                    <div className="text-sm text-gray-400 mb-1">Current Pool</div>
+                    <div className="text-xl font-bold text-[#FFE500]">18,492 SUI</div>
+                    <motion.div 
+                      className="text-sm text-[#FFE500]"
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                    >
+                      & growing every second!
+                    </motion.div>
                   </div>
                 </div>
+
+                {/* Arrow to next step (desktop only) */}
+                <motion.div 
+                  className="absolute -right-8 top-10 hidden lg:block"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <ArrowRight className="w-8 h-8 text-[#FFE500]" />
+                </motion.div>
               </motion.div>
 
               {/* Step 3: Win Big */}
               <motion.div
-                className="relative"
-                initial={{ opacity: 0, y: 50 }}
+                className="relative flex flex-col items-center"
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.6 }}
               >
-                {/* Timeline Node - Special */}
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-20 hidden lg:block">
+                {/* Step Number Circle with Glow */}
+                <div className="relative mb-6">
                   <motion.div 
-                    className="w-12 h-12 bg-gradient-to-br from-[#FF61E6] to-[#A855F7] rounded-full flex items-center justify-center font-black text-white border-4 border-white shadow-lg"
-                    whileInView={{ scale: [0, 1.2, 1] }}
+                    className="w-20 h-20 bg-gradient-to-br from-[#FF61E6] to-[#A855F7] rounded-full flex items-center justify-center font-black text-2xl text-white shadow-xl relative z-10"
+                    whileInView={{ scale: [0, 1.1, 1] }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.7 }}
+                    transition={{ delay: 0.1 }}
                   >
                     3
                   </motion.div>
-                  {/* Pulsing glow effect for win */}
+                  {/* Pulsing glow */}
                   <motion.div 
-                    className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-[#FF61E6] to-[#A855F7] rounded-full"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                    className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-[#FF61E6] to-[#A855F7] rounded-full blur-lg"
+                    animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                   />
                 </div>
                 
-                <div className="glass-card p-6 mt-12 text-center hover:scale-105 transition-transform border-2 border-[#FF61E6]/50">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#FF61E6] to-[#A855F7] flex items-center justify-center">
-                    <Crown className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3 text-[#FF61E6]">WIN 90%!</h3>
-                  <p className="text-gray-300 text-sm mb-4">One winner takes the massive prize</p>
-                  <div className="bg-[#FF61E6]/20 rounded-lg p-3">
-                    <div className="text-xs text-gray-300">Example Win</div>
-                    <div className="text-lg font-bold text-[#FF61E6]">16,643 SUI</div>
-                    <div className="text-sm text-[#FF61E6] font-bold">1,664x Return!</div>
+                {/* Content Card - Highlighted */}
+                <div className="glass-card p-6 text-center w-full hover:transform hover:scale-105 transition-all duration-300 border-2 border-[#FF61E6]/50 bg-gradient-to-br from-[#FF61E6]/10 to-[#A855F7]/10">
+                  <Crown className="w-12 h-12 mx-auto mb-4 text-[#FF61E6]" />
+                  <h3 className="text-2xl font-bold mb-3 text-[#FF61E6]">WIN 90%!</h3>
+                  <p className="text-gray-300 mb-4">One lucky winner takes almost everything!</p>
+                  <div className="bg-[#FF61E6]/10 border border-[#FF61E6]/30 rounded-lg p-4">
+                    <div className="text-sm text-gray-400 mb-1">Your Potential Win</div>
+                    <div className="text-xl font-bold text-[#FF61E6]">16,643 SUI</div>
+                    <div className="text-lg text-[#FF61E6] font-bold">1,664x Return!</div>
                   </div>
                 </div>
+
+                {/* Arrow to next step (desktop only) */}
+                <motion.div 
+                  className="absolute -right-8 top-10 hidden lg:block"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <ArrowRight className="w-8 h-8 text-[#FF61E6]" />
+                </motion.div>
               </motion.div>
 
-              {/* Step 4: Lucky Sunday */}
+              {/* Step 4: Lucky Sunday Bonus */}
               <motion.div
-                className="relative"
-                initial={{ opacity: 0, y: 50 }}
+                className="relative flex flex-col items-center"
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.8 }}
               >
-                {/* Timeline Node */}
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-20 hidden lg:block">
-                  <motion.div 
-                    className="w-12 h-12 bg-gradient-to-br from-[#A855F7] to-[#7C3AED] rounded-full flex items-center justify-center font-black text-white border-4 border-white shadow-lg"
-                    whileInView={{ scale: [0, 1.2, 1] }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.9 }}
-                  >
-                    4
-                  </motion.div>
-                </div>
+                {/* Step Number Circle */}
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-br from-[#A855F7] to-[#7C3AED] rounded-full flex items-center justify-center font-black text-2xl text-white shadow-xl mb-6 relative z-10"
+                  whileInView={{ scale: [0, 1.1, 1] }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <Star className="w-8 h-8" />
+                </motion.div>
                 
-                <div className="glass-card p-6 mt-12 text-center hover:scale-105 transition-transform border-2 border-[#A855F7]/50">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#A855F7] to-[#7C3AED] flex items-center justify-center">
-                    <Star className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3 text-[#A855F7]">Lucky Sunday</h3>
-                  <p className="text-gray-300 text-sm mb-4">Weekly mega jackpot for all players</p>
-                  <div className="bg-[#A855F7]/20 rounded-lg p-3">
-                    <div className="text-xs text-gray-300">This Week</div>
-                    <div className="text-lg font-bold text-[#A855F7]">847K SUI</div>
-                    <div className="text-xs text-gray-300">Mega Prize!</div>
+                {/* Content Card - Special */}
+                <div className="glass-card p-6 text-center w-full hover:transform hover:scale-105 transition-all duration-300 border-2 border-[#A855F7]/50">
+                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-[#A855F7]" />
+                  <h3 className="text-2xl font-bold mb-3 text-[#A855F7]">Lucky Sunday</h3>
+                  <p className="text-gray-300 mb-4">Play any day & get entered for weekly mega prize!</p>
+                  <div className="bg-[#A855F7]/10 border border-[#A855F7]/30 rounded-lg p-4">
+                    <div className="text-sm text-gray-400 mb-1">This Week&apos;s Prize</div>
+                    <div className="text-xl font-bold text-[#A855F7]">847,392 SUI</div>
+                    <div className="text-sm text-[#A855F7] font-semibold">FREE Entry!</div>
                   </div>
                 </div>
               </motion.div>
             </div>
-            
-            {/* Animated Arrows Between Steps - Desktop Only */}
-            <div className="hidden lg:flex absolute top-20 left-0 right-0 justify-between items-center px-32 pointer-events-none">
-              {[0, 1, 2].map((index) => (
-                <motion.div
-                  key={index}
-                  className="flex items-center"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.5 + index * 0.2 }}
-                >
-                  <ArrowRight className="w-8 h-8 text-[#FFE500] drop-shadow-[0_0_10px_rgba(255,229,0,0.5)]" />
-                </motion.div>
-              ))}
+
+            {/* Mobile scroll indicator */}
+            <div className="mt-8 text-center lg:hidden">
+              <p className="text-gray-400 text-sm">Swipe to see all steps →</p>
             </div>
           </div>
+
+          {/* Key Benefits Summary */}
+          <motion.div 
+            className="mt-16 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 1 }}
+          >
+            <div className="text-center">
+              <div className="text-3xl mb-2">⚡</div>
+              <h4 className="font-bold text-lg mb-1">Quick Rounds</h4>
+              <p className="text-gray-400 text-sm">New chance every 10 minutes</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-2">💰</div>
+              <h4 className="font-bold text-lg mb-1">90% to Winner</h4>
+              <p className="text-gray-400 text-sm">Biggest prize share on Sui</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-2">🎁</div>
+              <h4 className="font-bold text-lg mb-1">Everyone Wins</h4>
+              <p className="text-gray-400 text-sm">5% airdrop to all players</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
