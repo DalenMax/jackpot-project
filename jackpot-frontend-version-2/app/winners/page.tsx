@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Trophy, Heart, TrendingUp, Clock, Sparkles, ChevronRight, Users, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { SuiJackpotLogo } from "../../components/sui-jackpot-logo";
 
 interface Winner {
   id: number;
@@ -117,12 +118,7 @@ export default function WinnersPage() {
       {/* Header */}
       <header className="border-b border-white/10 backdrop-blur-md bg-white/5">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#FFE500] flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold gradient-text">SuiJackpot</h1>
-          </Link>
+          <SuiJackpotLogo />
           <nav className="flex items-center gap-6">
             <Link href="/tutorial" className="hover:text-[#00D4FF] transition-colors">How to Play</Link>
             <Link href="/example" className="hover:text-[#00D4FF] transition-colors">Demo</Link>

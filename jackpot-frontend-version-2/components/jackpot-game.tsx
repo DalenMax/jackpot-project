@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Zap, Trophy, TrendingUp, Users, Clock, Gift, Star, Sparkles, DollarSign, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { SuiJackpotLogo } from './sui-jackpot-logo';
 import { useCurrentAccount, useSuiClientQuery, useDisconnectWallet, ConnectButton, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { useJackpot } from '../core/hooks/use-jackpot.hook';
 import { JACKPOT_CONFIG } from '../config/jackpot';
@@ -402,12 +403,7 @@ export function JackpotGame() {
       <header className="relative z-10 border-b border-white/10 backdrop-blur-md bg-white/5">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#FFE500] flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold gradient-text">SuiJackpot</h1>
-            </Link>
+            <SuiJackpotLogo />
             <span className="px-3 py-1 bg-green-500/20 border border-green-500/50 rounded-full text-sm">
               LIVE
             </span>

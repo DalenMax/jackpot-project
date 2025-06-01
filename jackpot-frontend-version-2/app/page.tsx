@@ -1,25 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useCurrentAccount } from '@mysten/dapp-kit';
 import { validateConfig } from '../utils/config-validation';
 import { NoSSR } from '../components/no-ssr';
 import dynamic from 'next/dynamic';
 
 // Dynamic imports with SSR disabled for wallet-dependent components
-const WalletConnection = dynamic(() => import('../components/wallet-connection').then(mod => ({ default: mod.WalletConnection })), { 
-  ssr: false,
-  loading: () => <div className="flex justify-center"><div className="animate-pulse bg-gray-300 h-12 w-32 rounded"></div></div>
-});
-
 const JackpotGame = dynamic(() => import('../components/jackpot-game').then(mod => ({ default: mod.JackpotGame })), { 
   ssr: false,
   loading: () => <div className="glass-panel text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div></div>
-});
-
-const ActivityFeed = dynamic(() => import('../components/activity-feed').then(mod => ({ default: mod.ActivityFeed })), { 
-  ssr: false,
-  loading: () => <div className="glass-panel"><div className="animate-pulse bg-gray-700 h-48 rounded"></div></div>
 });
 
 export default function Home() {
@@ -37,7 +26,6 @@ export default function Home() {
 }
 
 function HomeContent() {
-  const currentAccount = useCurrentAccount();
   const [configValid, setConfigValid] = useState(false);
   const [mounted, setMounted] = useState(false);
 
